@@ -28,23 +28,22 @@ int nfilosofo[N] = {0, 1, 2, 3, 4};
 int state[N] = {0, 0, 0, 0, 0}; // estados dos philosophers (comendo, pensando e com fome)
 sem_t phil_sem[N];              // controlador de cada filosofo
 
-sem_t s;
-
-
-int x = 0; 
-
-
-
-void think(int i){
+void think(int i)
+{ // Só pra consumir processamento
     printf("Filosofo %d esta pensando.\n", i);
-    int t = (rand()%5);
+    int t = (rand()%5); 
     sleep(t);
+    return;
 }
 
-void eat(int i){
-    printf("Filosofo %d esta comendo.\n", i);
-    int t = (rand()%5);
-    sleep(t);
+void eat(int i)
+{ // Só pra consumir processamento
+    if(state[i]==EATING){
+        printf("Filosofo %d esta comendo.\n", i);
+        int t = (rand()%5);
+        sleep(t);
+        }
+    return;
 }
 
 void *mythread(void *data)
@@ -61,30 +60,30 @@ void *mythread(void *data)
 
 void take_forks(int i)
 {
-    pthread_mutex_lock(&mutex);
+    pthread_mutex_lock(&mutex); // mutex que regula acesso a região crítica(mesa)
     state[i] = HUNGRY;
     test(i);
-    pthread_mutex_unlock(&mutex);
-    sem_wait(&phil_sem[i]);
+    pthread_mutex_unlock(&mutex); // libera a região crítica(mesa)
+    sem_wait(&phil_sem[i]); // coloca o filosofo em espera para comer ate outro filósofo poder liberá-lo
 }
 
 void put_forks(int i)
 {
-    pthread_mutex_lock(&mutex);
+    pthread_mutex_lock(&mutex); // mutex que regula acesso a região crítica(mesa)
     state[i] = THINKING;
     printf("Filosofo %d deixou os garfos %d e %d.\n", i, LEFT, RIGHT);
     test(LEFT);
     test(RIGHT);
-    pthread_mutex_unlock(&mutex);
+    pthread_mutex_unlock(&mutex); // libera a região crítica(mesa)
 }
 
-void test(int i)
+void test(int i) //Verifica se os Filosofos vizinhos já estão comendo
 {
     if (state[i] == HUNGRY && state[LEFT] != EATING && state[RIGHT] != EATING)
-    {
-        state[2] = HUNGRY;
-        printf("Filosofo %d pegou os garfos %d e %d.\n", i, LEFT, RIGHT);
-        sem_post(&phil_sem[i]);
+    { 
+        state[i] = EATING;
+        printf("Filosofo %d pegou os garfos do filósofo %d e %d.\n", i, LEFT, RIGHT);
+        sem_post(&phil_sem[i]); //Se os vizinhoso i não estiverem comendo, libera o filósofo i para pegar os garfos.
     }
 }
 
@@ -93,9 +92,9 @@ int main(void)
     int i = 0;
     pthread_t filosofo[N];
     for (i = 0; i < N; i++)
-        sem_init(&phil_sem[i], 0, 0); // inicializa o semáforo
+        sem_init(&phil_sem[i], 0, 0); // inicializa o semáforo controlador de cada filosofo
     for (i = 0; i < N; i++)
-    {
+    {   //Criação da thread de cada Filósofo
         int *j = malloc(sizeof(int));
         *j = i;
         pthread_create(&filosofo[i], NULL, mythread, &nfilosofo[i]);
