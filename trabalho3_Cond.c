@@ -8,8 +8,8 @@
 
 pthread_mutex_t count_mutex     = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t  condition_var0  = PTHREAD_COND_INITIALIZER;
-pthread_cond_t  condition_var1   = PTHREAD_COND_INITIALIZER;
-pthread_cond_t  condition_var2   = PTHREAD_COND_INITIALIZER;
+//pthread_cond_t  condition_var1   = PTHREAD_COND_INITIALIZER;
+//pthread_cond_t  condition_var2   = PTHREAD_COND_INITIALIZER;
 
 
 
@@ -40,7 +40,7 @@ void main()
    exit(EXIT_SUCCESS);
 }
 
-void cond_check(int id){
+/*void cond_check(int id){
     if(id == 0)
         pthread_cond_wait( &condition_var0, &count_mutex );
     else if(id == 1)
@@ -62,18 +62,18 @@ void cond_signal(int id){
             pthread_cond_signal( &condition_var0);
         }
     return;  
-}
+}*/
 
 void turn_check(int id){
-    while(1){
+        printf("%d\n", id);
+        printf("turn: %d\n", turn);
+
         if(id == turn){// Se for seu turno de incrementar retorna para a main para seguir para a função count_func
         return;
     }else
     {   // enquanto não for seu turno é colocado para dormir até que seja seu turno
-        cond_check(id);
-        //pthread_cond_wait( &condition_var[id], &count_mutex );  
-        return;   
-    }
+        //cond_check(id);
+        pthread_cond_wait( &condition_var0, &count_mutex );
     }
 }
 
@@ -83,7 +83,7 @@ void count_func(int id){
         return;
     }
     count++; // Incrementa o contador caso ainda não tenha atingido o máximo
-    printf("turn count: %d", id);
+    printf("turn count: %d\n", id);
     turn = NEXT; // seta o indicador de turno para a proxima thread
     return;
 }
@@ -93,16 +93,16 @@ void *functionCount(void *data)
    for(;;)
    {
         int *i = data;
-
+        int id = (int)*i;
         pthread_mutex_lock( &count_mutex ); // Tenta adentrar a região crítica
         turn_check(*i); // Verifica se é o seu turno de incrementar
-
-        count_func(*i); // Incrementa o valor de count
-        
+        if(id == turn)
+            count_func(*i); // Incrementa o valor de count
         printf("\tCounter value functionCount: %d\n",count);
 
         pthread_mutex_unlock( &count_mutex ); // Deixa a região crítica
-        cond_signal(*i);
+        //cond_signal(*i);
+        pthread_cond_signal( &condition_var0 );
         if(count >= COUNT_MAX) return(NULL);
     }
 }
