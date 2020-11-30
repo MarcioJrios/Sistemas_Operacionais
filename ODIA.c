@@ -8,7 +8,7 @@
 #include <errno.h>      /* Declares errno and defines error constants */
 #include <string.h>     /* Commonly used string-handling functions */
 #include <stdbool.h> 
-#include<math.h>
+#include <math.h>
 
 static pthread_barrier_t barrier1;
 static pthread_barrier_t barrier2;
@@ -18,57 +18,88 @@ pthread_mutex_t swap_mutex     = PTHREAD_MUTEX_INITIALIZER;
 
 void *threadCode();
 
-int iteracoes = 10;
-int N = 10000;
+int iteracoes = 40;
+int N = 10000; //elementos totais do vetor(incluindo os de borda)
 int numThreads = 10;
 int swap;
-
+double velho[10000];
+double novo[10000];
     
 int main(){
     int s;
-    double velho[N];
-    double novo[N];
+
     velho[0] = 0;
     velho[N-1] = 1;
     novo[0] = 0;
     novo[N-1] = 1;
+    //zerando os elementos do vetor
+    for(int i=1; i<N-1; i++){
+            novo[i] = 0;
+        }
+    for(int i=1; i<N-1; i++){
+            velho[i] = 0;
+        }
+    
 
+    int nThread[numThreads];
+    for(int i = 0;i<numThreads;i++){
+        nThread[i]=i;
+    }
+    //inicializando as barreiras
     s = pthread_barrier_init(&barrier1, NULL, numThreads);
     s = pthread_barrier_init(&barrier2, NULL, numThreads);
 
 
-    for(int i=1; i<=N; i++){
-            novo[i] = 0;
-        }
-    for(int i=1; i<=N; i++){
-            velho[i] = 0;
-        }
     
-    
+    pthread_t thread[numThreads];
 
+    for (int i = 0; i < numThreads; i++)
+    {
+        pthread_create(&thread[i], NULL, threadCode, &nThread[i]);
+    }
+
+    for (int i = 0; i < numThreads; i++)
+        pthread_join(thread[i], NULL);
+    for(int i=0; i<=N-1; i++){
+                printf("%lf\n", velho[i]);
+            }
     exit(EXIT_SUCCESS);
-}
+}   
 
-void *threadCode(void *data, double velho[N], double novo[N]){
+void *threadCode(void *data){
     int s;
     int *i = data;
     int t = (int)*i;
     int n = N - 2;
     int d = numThreads;
-    double fatia = ceil(n/d);
-    double inicio = t*fatia + 1;
-    double fim = inicio + fatia - 1;
+    int fatia = ceil(n/d);
+    int inicio = t*fatia + 1;
+    int fim = inicio + fatia - 1;
+    if(t==numThreads-1)
+        fim = N-2;
+    /*int fatia = ceil(N/d);
+    int inicio = t * fatia;
+    if(inicio = 0)
+        inicio = 1;
+    //int fim = fatia *(t+1) - 1;
+    int fim = inicio + fatia - 1;*/
+    
+    printf("fatia: %d ", fatia);
+    printf(" inicio: %d ", inicio);
     if(fim > (N-2))
         fim = N-2;
+    printf(" fim: %d\n", fim);
 
     for(int j=0; j<iteracoes; j++){
-
+        
         s = pthread_barrier_wait(&barrier1);
-        swap = 0;
-
+        puts("A");
         for(int i = inicio; i<=fim; i++){
+            printf("i: %d\n", i);
+            printf("B %lf", velho[0]);
             novo[i]=(velho[i-1]+velho[i+1])/2;
         }
+        swap = 0;
 
         s = pthread_barrier_wait(&barrier2);
         if(swap == 0 && pthread_mutex_trylock(&swap_mutex)==0){
@@ -84,9 +115,7 @@ void *threadCode(void *data, double velho[N], double novo[N]){
             for(int i=1; i<=n+1; i++){
                 velho[i] = temp[i];
             }
-            for(int i=0; i<=N+1; i++){
-                printf("%ls\n", velho[i]);
-            }
+            
             swap = 1;
             pthread_mutex_unlock(&swap_mutex);
         }
