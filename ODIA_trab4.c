@@ -76,14 +76,14 @@ int main(){
 void *threadCode(void *data){
     int s;
     int *i = data;
-    int t = (int)*i;
-    int n = N - 2;
+    int t = (int)*i; //identificador da thread
+    int n = N - 2; //numero de posições alteráveis do vetor
     int d = numThreads;
-    int fatia = ceil(n/d);
-    int inicio = t*fatia + 1;
-    int fim = inicio + fatia - 1;
+    int fatia = ceil(n/d); //quantidade de posições do vetor que cada thread ira alterar
+    int inicio = t*fatia + 1; //inicio do vetor em a thread começará a alterar o vetor
+    int fim = inicio + fatia - 1; //ate onde a thread irá alterar o vetor
     if(t==numThreads-1)
-        fim = N-2;
+        fim = N-2; //no caso de ser a ultima thread, ela recebe qualquer posição restante do vetor
     /*int fatia = ceil(N/d);
     int inicio = t * fatia;
     if(inicio = 0)
@@ -95,14 +95,14 @@ void *threadCode(void *data){
         fim = N-2;
 
     for(int j=0; j<iteracoes; j++){
-        s = pthread_barrier_wait(&barrier1);
+        s = pthread_barrier_wait(&barrier1); // todas as threads esperam na primeira barreira antes de começar a alterar o vetor
         for(int i = inicio; i<=fim; i++){
             novo[i]=(velho[i-1]+velho[i+1])/2;
         }
-        swap = 0;
+        swap = 0; //seta a auxiliar swap para 0 para indicar que não foi feito o swap do novo para o velho
 
         s = pthread_barrier_wait(&barrier2);
-        if(swap == 0 && pthread_mutex_trylock(&swap_mutex)==0){
+        if(pthread_mutex_trylock(&swap_mutex)==0 && swap == 0){ // se ainda não foi feito o swap e nenhuma outra thread recebeu o mutex realiza o swap
             double temp[N];
             temp[0] = 0;
             temp[n+1] = 1;
@@ -116,7 +116,7 @@ void *threadCode(void *data){
                 velho[i] = temp[i];
             }
             
-            swap = 1;
+            swap = 1; //seta a auxiliar para 1 para indicar que já foi feito o swap e nenhuma outra thread executá-lo denovo
             pthread_mutex_unlock(&swap_mutex);
         }
 
