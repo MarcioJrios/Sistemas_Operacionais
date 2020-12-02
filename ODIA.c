@@ -14,20 +14,27 @@ static pthread_barrier_t barrier1;
 static pthread_barrier_t barrier2;
 pthread_mutex_t swap_mutex     = PTHREAD_MUTEX_INITIALIZER;
 
-
+/*typedef struct Attr {
+    double* velho;
+    double* novo;
+} Attr;*/
 
 void *threadCode();
 
-int iteracoes = 40;
+int numThreads;
+int iteracoes; //quantidade de iterações
 int N = 10000; //elementos totais do vetor(incluindo os de borda)
-int numThreads = 10;
-int swap;
-double velho[10000];
+int swap;   //variavel auxiliar para operação de swap
+double velho[10000]; 
 double novo[10000];
     
 int main(){
     int s;
-
+    
+    puts("Digite a quantidade de threads( < 10000");
+    scanf("%d", &numThreads);
+    puts("Digite a quantidade de iterações");
+    scanf("%d", &iteracoes);
     velho[0] = 0;
     velho[N-1] = 1;
     novo[0] = 0;
@@ -61,8 +68,8 @@ int main(){
     for (int i = 0; i < numThreads; i++)
         pthread_join(thread[i], NULL);
     for(int i=0; i<=N-1; i++){
-                printf("%lf\n", velho[i]);
-            }
+            printf("%lf\n", velho[i]);
+        }
     exit(EXIT_SUCCESS);
 }   
 
@@ -84,19 +91,12 @@ void *threadCode(void *data){
     //int fim = fatia *(t+1) - 1;
     int fim = inicio + fatia - 1;*/
     
-    printf("fatia: %d ", fatia);
-    printf(" inicio: %d ", inicio);
     if(fim > (N-2))
         fim = N-2;
-    printf(" fim: %d\n", fim);
 
     for(int j=0; j<iteracoes; j++){
-        
         s = pthread_barrier_wait(&barrier1);
-        puts("A");
         for(int i = inicio; i<=fim; i++){
-            printf("i: %d\n", i);
-            printf("B %lf", velho[0]);
             novo[i]=(velho[i-1]+velho[i+1])/2;
         }
         swap = 0;
