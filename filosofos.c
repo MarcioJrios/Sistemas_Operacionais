@@ -1,6 +1,10 @@
 /* Dica para compilação: 
                          gcc -o test2 MutexESemaforo.c -lpthread */
 
+//// Autor: Marcio Junior Rios             ////
+//// github: MarcioJrios                   ////
+////                                       ////
+//// Universidade Federal da Fronteira Sul ////
 
 #include <pthread.h>
 #include <stdio.h>
