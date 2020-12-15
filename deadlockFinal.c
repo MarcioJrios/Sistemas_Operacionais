@@ -1,9 +1,14 @@
+//// Autor: Marcio Junior Rios             ////
+//// github: MarcioJrios                   ////
+////                                       ////
+//// Universidade Federal da Fronteira Sul ////
+
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-void *thread1(void *data);
-void *thread2(void *data);
+void *thread1();
+void *thread2();
 
 
 
@@ -26,7 +31,7 @@ int main(void) {
 
 }
 
-void *thread1(void *data){
+void *thread1(){
      unsigned long i,j;
      while(1){
      if(pthread_mutex_trylock(&mutex1)==0){
@@ -57,7 +62,7 @@ void *thread1(void *data){
     pthread_exit(NULL);
 }
 
-void *thread2(void *data){
+void *thread2(){
      unsigned long i,j;
      while(1){
      if(pthread_mutex_trylock(&mutex2)==0) {
